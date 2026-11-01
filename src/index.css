@@ -1,0 +1,193 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-canvas: #FAF8F5;
+  --color-surface: #F3EFE6;
+  --color-surface-elevated: #FFFFFF;
+  --color-surface-muted: #EBE5D8;
+  --color-text-primary: #17201B;
+  --color-text-secondary: #4A5B52;
+  --color-text-tertiary: #6B7D73;
+  --color-action-primary: #2D5A43;
+  --color-action-primary-hover: #234835;
+  --color-action-primary-text: #FFFFFF;
+  --color-accent-clay: #A66D52;
+  --color-accent-clay-subtle: #F6EDE8;
+  --color-border-subtle: #E2DBD0;
+  --color-border-strong: #C8BEAF;
+  --color-focus: #2D5A43;
+  --color-focus-offset: #FAF8F5;
+  --color-success: #246E4A;
+  --color-success-bg: #E8F4EC;
+  --color-caution: #B45309;
+  --color-caution-bg: #FEF3C7;
+  --color-error: #B91C1C;
+  --color-error-bg: #FEE2E2;
+  --color-disabled: #A5B0A9;
+  --color-disabled-bg: #EAE5DC;
+
+  /* Backward compatibility aliases */
+  --bg-parchment: var(--color-canvas);
+  --bg-surface: var(--color-surface);
+  --bg-surface-elevated: var(--color-surface-elevated);
+  --bg-surface-muted: var(--color-surface-muted);
+  --border-subtle: var(--color-border-subtle);
+  --border-strong: var(--color-border-strong);
+  --text-ink-primary: var(--color-text-primary);
+  --text-ink-secondary: var(--color-text-secondary);
+  --text-ink-tertiary: var(--color-text-tertiary);
+  --botanical-emerald: var(--color-action-primary);
+}
+
+[data-theme='dark'] {
+  --color-canvas: #0B100D;
+  --color-surface: #131B16;
+  --color-surface-elevated: #1B2720;
+  --color-surface-muted: #16201A;
+  --color-text-primary: #F2F5F3;
+  --color-text-secondary: #B3C4B8;
+  --color-text-tertiary: #7D9285;
+  --color-action-primary: #B9D8C3;
+  --color-action-primary-hover: #CFE5D6;
+  --color-action-primary-text: #102018;
+  --color-accent-clay: #CE9D80;
+  --color-accent-clay-subtle: #291E19;
+  --color-border-subtle: #223128;
+  --color-border-strong: #374E41;
+  --color-focus: #B9D8C3;
+  --color-focus-offset: #0B100D;
+  --color-success: #4ADE80;
+  --color-success-bg: #143522;
+  --color-caution: #FBBF24;
+  --color-caution-bg: #382A10;
+  --color-error: #F87171;
+  --color-error-bg: #381515;
+  --color-disabled: #4D5E54;
+  --color-disabled-bg: #18221C;
+
+  /* Backward compatibility aliases */
+  --bg-parchment: var(--color-canvas);
+  --bg-surface: var(--color-surface);
+  --bg-surface-elevated: var(--color-surface-elevated);
+  --bg-surface-muted: var(--color-surface-muted);
+  --border-subtle: var(--color-border-subtle);
+  --border-strong: var(--color-border-strong);
+  --text-ink-primary: var(--color-text-primary);
+  --text-ink-secondary: var(--color-text-secondary);
+  --text-ink-tertiary: var(--color-text-tertiary);
+  --botanical-emerald: #47A977;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-color: var(--color-canvas);
+  color: var(--color-text-primary);
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Accessible focus ring utility */
+.focus-ring {
+  outline: none;
+}
+.focus-ring:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Reduced motion accessibility compliance */
+@media (prefers-reduced-motion: reduce) {\n  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Touch friendly momentum scrolling */
+.touch-momentum {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Scrollbar utilities */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(74, 91, 82, 0.25);
+  border-radius: 9999px;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-thumb {
+  background: rgba(179, 196, 184, 0.25);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(74, 91, 82, 0.45);
+}
+
+/* Botanical laser sweep keyframe for demo HUD */
+@keyframes laserSweep {
+  0% {
+    top: 0%;
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.95;
+  }
+  100% {
+    top: 98%;
+    opacity: 0.2;
+  }
+}
+
+.animate-laser {
+  animation: laserSweep 2.4s ease-in-out infinite alternate;
+}
+
+/* Classical botanical print styling */
+@media print {
+  body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+  }
+
+  header, nav, footer, aside, .no-print, button, .scanner-tray, .hud-overlay {
+    display: none !important;
+  }
+
+  .print-monograph {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .page-break {
+    page-break-before: always;
+  }
+}
