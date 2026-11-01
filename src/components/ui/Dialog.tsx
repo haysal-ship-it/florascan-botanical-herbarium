@@ -40,7 +40,8 @@ export const Dialog: React.FC<DialogProps> = ({
       document.body.style.overflow = 'hidden';
 
       return () => {
-        window.removeEventListener('keydown', handleKeyDown);\n        document.body.style.overflow = '';
+        window.removeEventListener('keydown', handleKeyDown);
+        document.body.style.overflow = '';
         clearTimeout(timer);
         previousActiveElement.current?.focus();
       };
