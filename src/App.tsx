@@ -17,6 +17,7 @@ export const App: React.FC = () => {
   const [activeSpecimen, setActiveSpecimen] = useState<BotanicalSpecimen | null>(
     ALL_BOTANICAL_SPECIMENS[0] // Default to Monstera deliciosa
   );
+  const [activePhotoUrl, setActivePhotoUrl] = useState<string | null>(null);
   const [comparisonSpecimen, setComparisonSpecimen] = useState<BotanicalSpecimen | null>(null);
 
   // Persistent Herbarium Entries
@@ -60,8 +61,11 @@ export const App: React.FC = () => {
   }, [herbariumEntries]);
 
   // Handler: Specimen identified via Scanner
-  const handleSpecimenIdentified = (specimen: BotanicalSpecimen) => {
+  const handleSpecimenIdentified = (specimen: BotanicalSpecimen, capturedImage?: string) => {
     setActiveSpecimen(specimen);
+    if (capturedImage) {
+      setActivePhotoUrl(capturedImage);
+    }
     // Smooth scroll down to dossier
     setTimeout(() => {
       const dossierEl = document.getElementById("specimen-dossier-section");
@@ -74,6 +78,7 @@ export const App: React.FC = () => {
   // Handler: Select specimen from Botanical Index
   const handleSelectFromIndex = (specimen: BotanicalSpecimen) => {
     setActiveSpecimen(specimen);
+    setActivePhotoUrl(null);
     setActiveTab("scanner");
     setTimeout(() => {
       const dossierEl = document.getElementById("specimen-dossier-section");
@@ -153,6 +158,7 @@ export const App: React.FC = () => {
               <div id="specimen-dossier-section">
                 <BotanicalDossier
                   specimen={activeSpecimen}
+                  userPhotoUrl={activePhotoUrl}
                   onSaveToHerbarium={handleSaveToHerbarium}
                   isSaved={isSpecimenSaved}
                   onCompare={handleCompare}

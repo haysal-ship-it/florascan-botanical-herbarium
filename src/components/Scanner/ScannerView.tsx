@@ -6,14 +6,18 @@ import {
   Scan,
   RefreshCw,
   Info,
+  Sparkles,
+  Settings,
 } from 'lucide-react';
 import { sound } from '../../lib/soundEngine';
 import { BotanicalSpecimen } from '../../types/botanical';
 import { SAMPLE_LABORATORY_SPECIMENS, ALL_BOTANICAL_SPECIMENS } from '../../data/botanicalDatabase';
 import { Button, Badge, Notice } from '../ui';
+import { identifyPlantWithAI, isAIVisionConfigured } from '../../lib/geminiPlantService';
+import { AISettingsModal } from './AISettingsModal';
 
 interface ScannerViewProps {
-  onSpecimenIdentified: (specimen: BotanicalSpecimen) => void;
+  onSpecimenIdentified: (specimen: BotanicalSpecimen, capturedImage?: string) => void;
   activeSpecimen: BotanicalSpecimen | null;
 }
 
@@ -39,6 +43,8 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
   const [processingStage, setProcessingStage] = useState<string>('Ready for botanical scan');
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [matchedSpecimen, setMatchedSpecimen] = useState<BotanicalSpecimen | null>(null);
+  const [isAiConfigured, setIsAiConfigured] = useState<boolean>(() => isAIVisionConfigured());
+  const [aiSettingsOpen, setAiSettingsOpen] = useState<boolean>(false);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -127,13 +133,42 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cameraFacing]);
 
-  // Execute honest demonstration identification sequence
-  const processIdentification = (targetSpecimen: BotanicalSpecimen, imageSource: string) => {
+  // Execute identification sequence (AI Vision or Curated Fallback)
+  const processIdentification = async (targetSpecimen: BotanicalSpecimen, imageSource: string) => {
     setCapturedImage(imageSource);
-    setMatchedSpecimen(targetSpecimen);
     setScannerState('processing');
     sound.playRadarPing();
 
+    if (isAIVisionConfigured()) {
+      setProcessingStage('Connecting to Gemini Vision model...');
+      const aiStages = [
+        'Analyzing leaf venation, floral geometry, and pigment profile with Gemini...',
+        'Resolving Linnaean binomial taxonomy & conservation status...',
+        'Compiling ASPCA toxicity matrix & horticultural care guide...',
+      ];
+      let aiStep = 0;
+      const interval = setInterval(() => {
+        aiStep = (aiStep + 1) % aiStages.length;
+        setProcessingStage(aiStages[aiStep]);
+        sound.playFocusLock();
+      }, 700);
+
+      try {
+        const identified = await identifyPlantWithAI(imageSource);
+        clearInterval(interval);
+        setMatchedSpecimen(identified);
+        setScannerState('result');
+        sound.playSuccessChime();
+        onSpecimenIdentified(identified, imageSource);
+        return;
+      } catch (err) {
+        clearInterval(interval);
+        console.warn('AI identification request failed or offline; falling back to curated reference archive:', err);
+      }
+    }
+
+    // Offline curated demonstration sequence
+    setMatchedSpecimen(targetSpecimen);
     const stages = [
       'Reading image dimensions and color profile...',
       'Comparing morphological characteristics with reference archive...',
@@ -153,7 +188,7 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
         if (timerRef.current) clearInterval(timerRef.current);
         setScannerState('result');
         sound.playSuccessChime();
-        onSpecimenIdentified(targetSpecimen);
+        onSpecimenIdentified(targetSpecimen, imageSource);
       }
     }, 550);
   };
@@ -280,11 +315,19 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
           </p>
         </div>
 
-        {/* Demo Status Notice */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-panel bg-[var(--color-surface)] border border-[var(--color-border-subtle)] text-xs font-mono text-[var(--color-text-secondary)] self-start md:self-auto">
-          <Info className="w-4 h-4 text-[var(--color-action-primary)] shrink-0" />
-          <span>Curated reference demonstration mode</span>
-        </div>
+        {/* AI Model Status & Configuration Button */}
+        <button
+          onClick={() => {
+            sound.playTap();
+            setAiSettingsOpen(true);
+          }}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-panel bg-[var(--color-surface)] border border-[var(--color-border-subtle)] hover:border-[var(--color-action-primary)] text-xs font-mono text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-all focus-ring self-start md:self-auto cursor-pointer"
+          title="Configure Gemini AI Vision Model"
+        >
+          <Sparkles className={`w-4 h-4 shrink-0 ${isAiConfigured ? 'text-[var(--color-action-primary)]' : 'text-amber-600 dark:text-amber-400'}`} />
+          <span>{isAiConfigured ? 'Gemini AI Vision Active' : 'Curated Demo (Tap to add AI Key)'}</span>
+          <Settings className="w-3.5 h-3.5 opacity-60 ml-0.5" />
+        </button>
       </div>
 
       {/* Error Notices (if camera denied or failed) */}
@@ -516,6 +559,13 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
           })}
         </div>
       </div>
+
+      {/* AI Settings Modal */}
+      <AISettingsModal
+        isOpen={aiSettingsOpen}
+        onClose={() => setAiSettingsOpen(false)}
+        onKeyUpdated={() => setIsAiConfigured(isAIVisionConfigured())}
+      />
 
     </section>
   );

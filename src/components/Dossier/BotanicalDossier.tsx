@@ -16,6 +16,7 @@ import {
   HeartHandshake,
   Check,
   PhoneCall,
+  Camera,
 } from 'lucide-react';
 import { BotanicalSpecimen, HerbariumEntry } from '../../types/botanical';
 import { sound } from '../../lib/soundEngine';
@@ -23,6 +24,7 @@ import { Button, Badge, Notice, Dialog } from '../ui';
 
 interface BotanicalDossierProps {
   specimen: BotanicalSpecimen;
+  userPhotoUrl?: string | null;
   onSaveToHerbarium: (entry: Omit<HerbariumEntry, 'entryId'>) => void;
   isSaved: boolean;
   onCompare: (specimen: BotanicalSpecimen) => void;
@@ -31,6 +33,7 @@ interface BotanicalDossierProps {
 
 export const BotanicalDossier: React.FC<BotanicalDossierProps> = ({
   specimen,
+  userPhotoUrl,
   onSaveToHerbarium,
   isSaved,
   onCompare,
@@ -42,6 +45,7 @@ export const BotanicalDossier: React.FC<BotanicalDossierProps> = ({
   const [tagInput, setTagInput] = useState('Field Observation, Living Specimen');
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'care' | 'safety' | 'uses'>('overview');
+  const [photoMode, setPhotoMode] = useState<'capture' | 'reference'>('capture');
 
   const handlePrint = () => {
     sound.playTap();
@@ -76,6 +80,7 @@ Overview: ${specimen.overviewMonograph}`;
       locationName: locationName || 'Field Observation',
       userNotes: userNotes || 'Archived in field journal.',
       customTags: tags.length ? tags : ['Field Specimen'],
+      userPhotoUrl: userPhotoUrl || specimen.primaryImageUrl,
     });
     setSaveModalOpen(false);
   };
@@ -187,19 +192,71 @@ Overview: ${specimen.overviewMonograph}`;
         
         {/* Left Column: Expressive Botanical Photography Plate */}
         <div className="lg:col-span-5 space-y-4">
+          
+          {/* Photo Source Switcher (When user has captured or uploaded a real photo) */}
+          {userPhotoUrl && (
+            <div className="flex rounded-control bg-[var(--color-surface)] p-1 border border-[var(--color-border-subtle)] text-xs font-medium">
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playTap();
+                  setPhotoMode('capture');
+                }}
+                className={`flex-1 py-1.5 px-3 rounded-control transition-all flex items-center justify-center gap-1.5 cursor-pointer focus-ring ${
+                  photoMode === 'capture'
+                    ? 'bg-[var(--color-surface-elevated)] text-[var(--color-text-primary)] shadow-tactile-sm font-semibold'
+                    : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+                }`}
+              >
+                <Camera className="w-3.5 h-3.5 text-[var(--color-action-primary)]" />
+                <span>Your Field Capture</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playTap();
+                  setPhotoMode('reference');
+                }}
+                className={`flex-1 py-1.5 px-3 rounded-control transition-all flex items-center justify-center gap-1.5 cursor-pointer focus-ring ${
+                  photoMode === 'reference'
+                    ? 'bg-[var(--color-surface-elevated)] text-[var(--color-text-primary)] shadow-tactile-sm font-semibold'
+                    : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[var(--color-accent-clay)]" />
+                <span>Archival Plate</span>
+              </button>
+            </div>
+          )}
+
           <div className="relative rounded-plate overflow-hidden border border-[var(--color-border-subtle)] bg-[var(--color-surface)] shadow-tactile-md aspect-[4/5]">
             <img
-              src={specimen.primaryImageUrl}
-              alt={`${specimen.commonNames[0]} (${specimen.binomialName}) botanical plate`}
-              className="w-full h-full object-cover"
+              src={userPhotoUrl && photoMode === 'capture' ? userPhotoUrl : specimen.primaryImageUrl}
+              alt={
+                userPhotoUrl && photoMode === 'capture'
+                  ? `Your field capture of ${specimen.commonNames[0]}`
+                  : `${specimen.commonNames[0]} (${specimen.binomialName}) botanical plate`
+              }
+              className="w-full h-full object-cover transition-opacity duration-200"
             />
-            {specimen.conservationStatus && (
-              <div className="absolute top-3 left-3">
+
+            {/* Badges */}
+            <div className="absolute top-3 left-3 flex flex-wrap gap-2">
+              {userPhotoUrl && photoMode === 'capture' ? (
+                <Badge variant="default" size="sm" className="bg-[var(--color-action-primary)] text-white border-0 font-mono text-[11px] shadow-tactile-sm">
+                  FIELD CAPTURE
+                </Badge>
+              ) : (
+                <Badge variant="default" size="sm" className="bg-black/70 backdrop-blur-md text-white border-0 font-mono text-[11px]">
+                  ARCHIVAL PLATE
+                </Badge>
+              )}
+              {specimen.conservationStatus && (
                 <Badge variant="default" size="sm" className="bg-black/70 backdrop-blur-md text-white border-0 font-mono text-[11px]">
                   IUCN {specimen.conservationStatus}
                 </Badge>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           {/* Taxonomic Hierarchy Strip */}

@@ -155,15 +155,20 @@ export const HerbariumJournal: React.FC<HerbariumJournalProps> = ({
                 <div className="flex items-start gap-4 p-5 border-b border-[var(--color-border-subtle)]">
                   <div
                     onClick={() => onViewSpecimen(entry.specimen)}
-                    className="w-20 h-20 rounded-panel overflow-hidden bg-[var(--color-surface)] border border-[var(--color-border-subtle)] shrink-0 cursor-pointer group"
+                    className="relative w-20 h-20 rounded-panel overflow-hidden bg-[var(--color-surface)] border border-[var(--color-border-subtle)] shrink-0 cursor-pointer group"
                     title="View full monograph"
                   >
                     <img
-                      src={entry.specimen.primaryImageUrl}
+                      src={entry.userPhotoUrl || entry.specimen.primaryImageUrl}
                       alt={entry.specimen.commonNames[0]}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                       loading="lazy"
                     />
+                    {entry.userPhotoUrl && (
+                      <div className="absolute bottom-0 inset-x-0 bg-black/70 text-[9px] font-mono text-center text-emerald-300 py-0.5">
+                        CAPTURE
+                      </div>
+                    )}
                   </div>
 
                   <div className="min-w-0 flex-1">
